@@ -2,6 +2,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QScreen>
+#include <QThread>
 #include <QTimer>
 
 #include "mainwindow.h"
@@ -94,6 +95,13 @@ void MainWindow::on_timer()
 
     QMap<QString, FileEntry> newFileList = findFiles();
     if (compareLists(fileList, newFileList)) return;
+    do {
+        QThread::msleep(500);
+        fileList = newFileList;
+        newFileList = findFiles();
+    } while (!compareLists(fileList, newFileList));
+    fileList = newFileList;
+
     QString dst = "qsm-" + QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd-HH-mm-ss");
     if (!QDir(ui->dstText->text()).mkdir(dst)) return;
     dst = ui->dstText->text() + QDir::separator() + dst;
@@ -108,7 +116,6 @@ void MainWindow::on_timer()
     {
         QFile::copy(e.fullname, dst + e.name);
     }
-    fileList = newFileList;
     updateTable();
 }
 
