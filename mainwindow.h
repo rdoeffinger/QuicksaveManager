@@ -2,8 +2,11 @@
 #define MAINWINDOW_H
 
 #include <QDateTime>
+#include <QDialog>
+#include <QLabel>
 #include <QMainWindow>
 #include <QMap>
+#include <QSettings>
 
 namespace Ui {
 class MainWindow;
@@ -35,12 +38,19 @@ private slots:
 
     void on_srcPushButton_clicked();
 
+    void on_tableWidget_cellDoubleClicked(int row, int column);
+
+    void on_tableWidget_cellClicked(int row, int column);
+
 private:
     void updateTable();
     QMap<QString, FileEntry> findFiles();
 
     Ui::MainWindow *ui;
     QMap<QString, FileEntry> fileList;
+    QSettings settings;
+    QDialog viewer;
+    QLabel *viewerlabel;
     volatile bool backupEnabled;
 };
 

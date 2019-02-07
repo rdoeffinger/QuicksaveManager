@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>783</width>
-    <height>415</height>
+    <width>1009</width>
+    <height>610</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -110,6 +110,9 @@
         <horstretch>1</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
+      </property>
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
       </property>
       <property name="iconSize">
        <size>

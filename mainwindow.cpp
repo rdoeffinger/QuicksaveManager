@@ -2,6 +2,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QScreen>
+#include <QSizePolicy>
 #include <QThread>
 #include <QTimer>
 
@@ -11,6 +12,9 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    settings(QSettings::IniFormat, QSettings::UserScope, "quicksavemanager"),
+    viewer(this, Qt::Window),
+    viewerlabel(new QLabel()),
     backupEnabled(false)
 {
     ui->setupUi(this);
@@ -18,6 +22,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableWidget->setHorizontalHeaderLabels(QStringList{tr("Screenshot"), tr("Filename")});
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     ui->tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    ui->dstText->setText(settings.value("dst", "").toString());
+    ui->srcText->setText(settings.value("src", "").toString());
+    ui->patternEdit->setText(settings.value("pattern", "*").toString());
+    QLayout *l = new QHBoxLayout();
+    viewerlabel->setScaledContents(true);
+    viewerlabel->setMinimumSize(1, 1);
+    l->addWidget(viewerlabel);
+    viewer.setLayout(l);
+    updateTable();
 }
 
 MainWindow::~MainWindow()
@@ -37,7 +50,7 @@ void MainWindow::updateTable()
 
         ui->tableWidget->setRowCount(i + 1);
         QTableWidgetItem *item = new QTableWidgetItem();
-        item->setIcon(QPixmap(name + ".png"));
+        item->setIcon(QIcon(name + ".png"));
         ui->tableWidget->setItem(i, 0, item);
         item = new QTableWidgetItem(it.fileInfo().fileName());
         ui->tableWidget->setItem(i, 1, item);
@@ -141,6 +154,9 @@ void MainWindow::on_startStopPushButton_clicked()
             QMessageBox::critical(this, tr("Bad pattern"), tr("Specified source directory does not contain files matching the pattern!"));
             return;
         }
+        settings.setValue("dst", ui->dstText->text());
+        settings.setValue("src", ui->srcText->text());
+        settings.setValue("pattern", ui->patternEdit->text());
     }
     backupEnabled = !backupEnabled;
     ui->startStopPushButton->setText(backupEnabled ? tr("Stop") : tr("Start"));
@@ -161,5 +177,22 @@ void MainWindow::on_dstPushButton_clicked()
 void MainWindow::on_srcPushButton_clicked()
 {
     QString dir = QFileDialog::getExistingDirectory(this, tr("Select savegame location"));
+    if (dir.isEmpty()) return;
     ui->srcText->setText(dir);
+}
+
+void MainWindow::on_tableWidget_cellDoubleClicked(int row, int column)
+{
+    if (column != 0) return;
+    on_tableWidget_cellClicked(row, column);
+    viewer.setVisible(!viewer.isVisible());
+}
+
+void MainWindow::on_tableWidget_cellClicked(int row, int column)
+{
+    if (column != 0) return;
+    QIcon ico = ui->tableWidget->item(row, column)->icon();
+    QSize size = ico.availableSizes()[0];
+    viewerlabel->setPixmap(ico.pixmap(size));
+    viewer.raise();
 }
