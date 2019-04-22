@@ -64,7 +64,25 @@ void MainWindow::on_restorePushButton_clicked()
 {
     bool oldEnabled = backupEnabled;
     backupEnabled = false;
-    QMessageBox::critical(this, tr("Missing"), tr("Not yet implemented!"));
+    QModelIndexList sel = ui->tableWidget->selectionModel()->selectedIndexes();
+    if (sel.size() != 1) {
+        QMessageBox::critical(this, tr("Bad selection"), tr("Must select exactly one item to restore!"));
+    } else {
+        int restoredCount = 0;
+        int row = sel[0].row();
+        QString backupName = ui->tableWidget->item(row, 1)->text();
+        QString backupPath = ui->dstText->text() + QDir::separator() + backupName + QDir::separator();
+        QString restoreTo = ui->srcText->text() + QDir::separator();
+        QDirIterator it(backupPath, QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden);
+        while (it.hasNext())
+        {
+            QString fullname = it.next();
+            QFileInfo fi = it.fileInfo();
+            QFile::remove(restoreTo + fi.fileName());
+            restoredCount += QFile::copy(fullname, restoreTo + fi.fileName());
+        }
+        QMessageBox::information(this, tr("Files restored"), tr("Successfully restored %1 files").arg(restoredCount));
+    }
     fileList = findFiles();
     backupEnabled = oldEnabled;
     QTimer::singleShot(5000, Qt::VeryCoarseTimer, this, SLOT(on_timer()));
