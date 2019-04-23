@@ -142,7 +142,6 @@ void MainWindow::on_timer()
     capture.save(dst + ".png");
 
     dst += QDir::separator();
-    QString src = ui->srcText->text() + QDir::separator();
     for (const FileEntry &e : newFileList)
     {
         QFile::copy(e.fullname, dst + e.name);
@@ -167,7 +166,7 @@ void MainWindow::on_startStopPushButton_clicked()
             return;
         }
         fileList = findFiles();
-        if (fileList.size() == 0)
+        if (fileList.empty())
         {
             QMessageBox::critical(this, tr("Bad pattern"), tr("Specified source directory does not contain files matching the pattern!"));
             return;
